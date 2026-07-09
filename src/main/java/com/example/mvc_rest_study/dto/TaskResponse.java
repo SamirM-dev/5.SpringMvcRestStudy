@@ -1,4 +1,4 @@
-package com.example.mvc_rest_study.dtotask;
+package com.example.mvc_rest_study.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;

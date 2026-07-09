@@ -1,8 +1,8 @@
 package com.example.mvc_rest_study.service;
 
-import com.example.mvc_rest_study.dtotask.CreateTaskRequest;
-import com.example.mvc_rest_study.dtotask.TaskResponse;
-import com.example.mvc_rest_study.dtotask.UpdateTaskRequest;
+import com.example.mvc_rest_study.dto.CreateTaskRequest;
+import com.example.mvc_rest_study.dto.TaskResponse;
+import com.example.mvc_rest_study.dto.UpdateTaskRequest;
 import com.example.mvc_rest_study.entity.Task;
 import com.example.mvc_rest_study.repository.TaskRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -31,10 +31,8 @@ public class TaskService {
     }
 
     public TaskResponse findById(Long id){
-        Task task = taskRepository.findById(id).orElse(null);
-        if(task == null){
-            return null;
-        }
+        if (id<=0) throw new IllegalArgumentException("Incorrect id format");
+        Task task = taskRepository.findById(id).orElseThrow(()->new EntityNotFoundException("Task with id: "+id+" does not found"));
         return toResponse(task);
     }
 
@@ -44,21 +42,17 @@ public class TaskService {
     }
 
     public TaskResponse updateTask(Long id,UpdateTaskRequest request){
-        Task task = taskRepository.findById(id).orElse(null);
-        if(task == null){
-            return null;
-        }
+        if (id<=0) throw new IllegalArgumentException("Incorrect id format");
+        Task task = taskRepository.findById(id).orElseThrow(()->new EntityNotFoundException("Task with id: "+id+" does not found"));
         task.setTitle(request.getTitle());
-        task.setDescription(request.getDescription());
+        task.setDescription((request.getDescription()));
         task.setStatus(request.getStatus());
         return toResponse(taskRepository.save(task));
     }
 
     public void deleteTask(Long id){
-        Task task = taskRepository.findById(id).orElse(null);
-        if(task == null){
-            throw new EntityNotFoundException("Task with id " + id + " not found");
-        }
+        if (id<=0) throw new IllegalArgumentException("Incorrect id format");
+        Task task = taskRepository.findById(id).orElseThrow(()->new EntityNotFoundException("Task with id: "+id+" does not found"));
         taskRepository.deleteById(id);
     }
 
