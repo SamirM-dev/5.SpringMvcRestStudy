@@ -1,7 +1,11 @@
 package com.example.mvc_rest_study.controller;
 
+import com.example.mvc_rest_study.dtotask.CreateTaskRequest;
+import com.example.mvc_rest_study.dtotask.TaskResponse;
+import com.example.mvc_rest_study.dtotask.UpdateTaskRequest;
 import com.example.mvc_rest_study.entity.Task;
-import jakarta.persistence.EntityNotFoundException;
+import com.example.mvc_rest_study.service.TaskService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,64 +17,54 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/tasks")
+@RequestMapping("/api/v1")
+@RequiredArgsConstructor
 public class TaskController {
-    private final Map<Long,Task> storage = new HashMap<>();
-    private Long currentId=1L;
+    private final TaskService taskService;
 
-    @GetMapping
-    public ResponseEntity<List<Task>> getAll(@RequestParam(required = false) String status){
-        List<Task> allTasks = new ArrayList<>(storage.values());
-        if(status!=null){
-            allTasks=allTasks.stream().filter(task -> task.getStatus().equalsIgnoreCase(status)).collect(Collectors.toList());
-        }
-        return ResponseEntity.ok(allTasks);
+    @GetMapping("/tasks")
+    public List<TaskResponse> getAll(@RequestParam(required = false) String status){
+      return taskService.getAll(status);
     }
-    @GetMapping("/{id}")
-    public ResponseEntity<Task> getById(@PathVariable Long id){
-        if (id<=0) {
-            throw new IllegalArgumentException();
+
+    @GetMapping("/tasks/{id}")
+    public ResponseEntity<TaskResponse> getById(@PathVariable Long id){
+        //так как пока нет глобального обработчика , часть проверок которая должна быть в сервисе пока будет в контроллере
+        if(id <=0){
+            return ResponseEntity.badRequest().build();
         }
-        if (!storage.containsKey(id)){
-            return  ResponseEntity.notFound().build();
+        TaskResponse taskResponse=taskService.findById(id);
+        if (taskResponse == null){
+            return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(storage.get(id));
+        return ResponseEntity.ok(taskResponse);
+
     }
-    @PostMapping
-    public ResponseEntity<Task> create(@RequestBody Task task){
-        Task created = new Task();
-        created.setId(currentId);
-        created.setTitle(task.getTitle());
-        created.setDescription(task.getDescription());
-        created.setStatus("new");
-        currentId++;
-        storage.put(created.getId(), created);
-        return ResponseEntity.created(URI.create("/api/tasks/"+created.getId())).body(created);
+
+    @PostMapping("/tasks")
+    public ResponseEntity<TaskResponse> create(@RequestBody CreateTaskRequest request){
+        TaskResponse response = taskService.createTask(request);
+        return ResponseEntity.created(URI.create("/api/v1/tasks/"+response.getId())).body(response);
     }
-    @PutMapping("/{id}")
-    public ResponseEntity<Task> update(@PathVariable Long id,@RequestBody Task task){
-        if (id<=0) {
-            throw new IllegalArgumentException();
+
+    @PutMapping("/tasks/{id}")
+    public ResponseEntity<TaskResponse> update(@PathVariable Long id,@RequestBody UpdateTaskRequest request){
+        if(id <=0){
+            return ResponseEntity.badRequest().build();
         }
-        if (!storage.containsKey(id)){
-            return  ResponseEntity.notFound().build();
+        TaskResponse response = taskService.updateTask(id, request);
+        if (response == null){
+            return ResponseEntity.notFound().build();
         }
-        Task updated = storage.get(id);
-        updated.setDescription(task.getDescription());
-        updated.setTitle(task.getTitle());
-        updated.setStatus(task.getStatus());
-        storage.put(id,updated);
-        return ResponseEntity.ok(updated);
+        return ResponseEntity.ok(response);
+
     }
-    @DeleteMapping("/{id}")
+
+    @DeleteMapping("/tasks/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id){
-        if (id<=0) {
-            throw new IllegalArgumentException();
+        if(id <=0){
+            return ResponseEntity.badRequest().build();
         }
-        if (!storage.containsKey(id)){
-            return  ResponseEntity.notFound().build();
-        }
-        storage.remove(id);
         return ResponseEntity.noContent().build();
     }
 
