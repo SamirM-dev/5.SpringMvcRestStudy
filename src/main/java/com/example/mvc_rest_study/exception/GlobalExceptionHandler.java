@@ -4,6 +4,7 @@ package com.example.mvc_rest_study.exception;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -51,7 +52,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<ErrorResponse> handleMethodNotSupported(HttpRequestMethodNotSupportedException e, HttpServletRequest request){
         ErrorResponse response = new ErrorResponse(HttpStatus.METHOD_NOT_ALLOWED.value(), "METHOD NOT ALLOWED", "HTTP-метод " + e.getMethod() + " не поддерживается для этого пути", request.getRequestURI());
-        return ResponseEntity.status(405).body(response);
+        String[] supportedMethods = e.getSupportedMethods();
+        return ResponseEntity.status(405).header(HttpHeaders.ALLOW,String.join(", ",supportedMethods)).body(response);
     }
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<ErrorResponse> handleNoResourceFound(NoResourceFoundException e, HttpServletRequest request){ErrorResponse response = new ErrorResponse(HttpStatus.NOT_FOUND.value(), "NOT FOUND", "Запрошенный путь не существует", request.getRequestURI());

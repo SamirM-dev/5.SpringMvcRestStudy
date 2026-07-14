@@ -6,12 +6,15 @@ import com.example.mvc_rest_study.dto.UpdateTaskRequest;
 import com.example.mvc_rest_study.service.TaskService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.util.List;
+import java.util.UUID;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
@@ -24,10 +27,14 @@ public class TaskController {
     }
 
     @GetMapping("/tasks/{id}")
-    public ResponseEntity<TaskResponse> getById(@PathVariable Long id){
-        TaskResponse taskResponse=taskService.findById(id);
-        return ResponseEntity.ok(taskResponse);
-
+    public ResponseEntity<TaskResponse> getById(@PathVariable Long id,@RequestHeader(value = "X-Request-ID", required = false) String requestId) {
+        TaskResponse taskResponse = taskService.findById(id);
+        if (requestId != null) {
+            log.debug("Выполняется метод getById с id:{} и requestId: {}", id, requestId);
+            return ResponseEntity.ok(taskResponse);
+        }
+        requestId=UUID.randomUUID().toString();
+        return ResponseEntity.status(200).header("X-Request-ID", requestId).body(taskResponse);
     }
 
     @PostMapping("/tasks")
