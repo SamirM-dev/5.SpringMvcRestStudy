@@ -21,7 +21,7 @@ public class LoggingFilter extends OncePerRequestFilter {
         String method = request.getMethod();
         String uri = request.getRequestURI();
         String query = request.getQueryString();
-        String fullUri = uri!=null?uri+"?"+query:uri;
+        String fullUri = query!=null?uri+"?"+query:uri;
         log.info("-> {} {}", method, fullUri);
 
         try {

@@ -35,9 +35,10 @@ public class AuthFilter extends OncePerRequestFilter {
         }
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
-        }for(Cookie cookie:cookies){
-            if(cookie.getName().equals("access_token")){
-                return cookie.getValue();
+            for (Cookie cookie : cookies) {
+                if (cookie.getName().equals("access_token")) {
+                    return cookie.getValue();
+                }
             }
         }
         return null;
